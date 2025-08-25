@@ -1,0 +1,9 @@
+smolagents[toolkit]
+requests
+python-dotenv
+openai
+jupyter
+numpy
+pandas
+matplotlib
+xmltodict

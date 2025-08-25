@@ -44,12 +44,12 @@ class CloudRuModel(Model):
         self.presence_penalty = presence_penalty
         
         # Получаем API ключ из аргументов или переменных окружения
-        self.api_key = api_key or os.getenv("CLOUD_RU_API_KEY") or os.getenv("API_KEY")
+        self.api_key = api_key or os.getenv("CLOUD_RU_API_KEY")
         self.base_url = base_url
         
         if not self.api_key:
             raise ValueError(
-                "Необходимо указать CLOUD_RU_API_KEY или API_KEY "
+                "Необходимо указать CLOUD_RU_API_KEY"
                 "либо через аргументы, либо через переменные окружения"
             )
         
@@ -259,40 +259,6 @@ class CloudRuModel(Model):
         }
 
 
-class CloudRuModelWithFallback(CloudRuModel):
-    """
-    Модель Cloud.ru с fallback на OpenAI в случае ошибок
-    DEPRECATED: Используйте CloudRuModel без fallback
-    """
-    
-    def __init__(self, *args, **kwargs):
-        """Инициализация БЕЗ fallback - теперь это просто алиас для CloudRuModel"""
-        # Убираем параметры fallback если они есть
-        kwargs.pop("use_openai_fallback", None)
-        kwargs.pop("openai_api_key", None)
-        
-        super().__init__(*args, **kwargs)
-        
-        # Больше не используем OpenAI fallback
-        self.use_openai_fallback = False
-    
-    def generate(self, messages, stop_sequences=None, response_format=None, tools_to_call_from=None, **kwargs):
-        """
-        Запрос БЕЗ fallback - просто вызываем родительский метод
-        """
-        return super().generate(messages, stop_sequences, response_format, tools_to_call_from, **kwargs)
-
-    def __call__(self, messages: List[Dict[str, str]], **kwargs) -> str:
-        """
-        Запрос с fallback на OpenAI (возвращает строку)
-        """
-        try:
-            chat_message = self.generate(messages, **kwargs)
-            return chat_message.content
-        except Exception as e:
-            return f"Ошибка: {str(e)}"
-
-
 def create_cloud_ru_model(**kwargs) -> CloudRuModel:
     """
     Удобная функция для создания модели Cloud.ru
@@ -303,19 +269,6 @@ def create_cloud_ru_model(**kwargs) -> CloudRuModel:
     return CloudRuModel(**kwargs)
 
 
-def create_cloud_ru_model_with_fallback(**kwargs) -> CloudRuModel:
-    """
-    DEPRECATED: Используйте create_cloud_ru_model
-    Создает модель Cloud.ru БЕЗ fallback
-    
-    Returns:
-        CloudRuModel instance
-    """
-    kwargs.pop("use_openai_fallback", None)
-    kwargs.pop("openai_api_key", None)
-    return CloudRuModel(**kwargs)
-
-
 # Проверка подключения
 def test_cloud_ru_connection():
     """Тестовая функция для проверки подключения к Cloud.ru API"""
@@ -323,9 +276,9 @@ def test_cloud_ru_connection():
         print("🧪 Тестируем подключение к Cloud.ru API...")
         
         # Проверяем наличие API ключа
-        api_key = os.getenv("CLOUD_RU_API_KEY") or os.getenv("API_KEY")
+        api_key = os.getenv("CLOUD_RU_API_KEY")
         if not api_key:
-            print("❌ API ключ не найден. Установите CLOUD_RU_API_KEY или API_KEY")
+            print("❌ API ключ не найден. Установите CLOUD_RU_API_KEY")
             return False
         
         model = CloudRuModel()
